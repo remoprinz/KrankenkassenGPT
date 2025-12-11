@@ -1,0 +1,487 @@
+openapi: 3.1.0
+info:
+  title: Swiss Health Insurance Premium API (Historical)
+  description: |
+    Erweiterte API mit historischen Daten (2016-2025) + Aktuell (2026).
+    1.6 Millionen Einträge, 51 Versicherer: Alle Altersgruppen, alle Franchisen, alle Modelle!
+    NEU: Preisentwicklung, Inflationsraten, Jahresvergleiche und Rankings.
+  version: 2.2.0
+  contact:
+    name: SwissHealth API Support
+    email: support@swisshealth-api.ch
+
+servers:
+  - url: https://krankenkassen.ragit.io
+    description: Production API
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  # Neue historische Endpoints
+  /premiums/timeline:
+    get:
+      operationId: getPremiumsTimeline
+      summary: Preisentwicklung über Jahre
+      description: Zeigt wie sich die Prämie einer Kasse über die Jahre entwickelt hat. Inkl. Trend und 2027 Prognose!
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: insurer_id
+          in: query
+          required: true
+          description: Versicherer-ID (z.B. "1318" für Assura)
+          schema:
+            type: string
+        - name: canton
+          in: query
+          required: true
+          description: Kanton (z.B. "ZH")
+          schema:
+            type: string
+            enum: [AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, JU, LU, NE, NW, OW, SG, SH, SO, SZ, TG, TI, UR, VD, VS, ZG, ZH]
+        - name: profile
+          in: query
+          required: false
+          description: Vordefiniertes Profil
+          schema:
+            type: string
+            enum: [single_adult, couple, family_1kid, family_2kids, student, young_adult]
+            default: single_adult
+        - name: start_year
+          in: query
+          required: false
+          description: Start-Jahr (min 2016)
+          schema:
+            type: integer
+            minimum: 2016
+            maximum: 2026
+            default: 2016
+        - name: end_year
+          in: query
+          required: false
+          description: End-Jahr (max 2026)
+          schema:
+            type: integer
+            minimum: 2016
+            maximum: 2026
+            default: 2025
+      responses:
+        '200':
+          description: Preisentwicklung mit Statistiken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  insurer:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                  timeline:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        year:
+                          type: integer
+                        monthly_premium_chf:
+                          type: number
+                  statistics:
+                    type: object
+                    properties:
+                      total_change_chf:
+                        type: number
+                      percent_change:
+                        type: number
+                      avg_yearly_increase:
+                        type: number
+                  trend:
+                    type: object
+                    properties:
+                      slope:
+                        type: number
+                      prediction_2027:
+                        type: number
+
+  /premiums/inflation:
+    get:
+      operationId: getPremiumsInflation
+      summary: Inflationsrate der Prämien
+      description: Berechnet die jährliche Inflation der Krankenkassenprämien für einen Kanton/Profil.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: canton
+          in: query
+          required: false
+          description: Kanton (default "ZH")
+          schema:
+            type: string
+            enum: [AG, AI, AR, BE, BL, BS, FR, GE, GL, GR, JU, LU, NE, NW, OW, SG, SH, SO, SZ, TG, TI, UR, VD, VS, ZG, ZH]
+            default: ZH
+        - name: age_band
+          in: query
+          required: false
+          description: Altersgruppe
+          schema:
+            type: string
+            enum: [child, young_adult, adult]
+            default: adult
+        - name: franchise_chf
+          in: query
+          required: false
+          description: Franchise in CHF
+          schema:
+            type: string
+            enum: ["0", "100", "200", "300", "400", "500", "600", "1000", "1500", "2000", "2500"]
+            default: "2500"
+        - name: model_type
+          in: query
+          required: false
+          description: Versicherungsmodell
+          schema:
+            type: string
+            enum: [standard, hmo, telmed, family_doctor, diverse]
+            default: standard
+        - name: start_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 2016
+            maximum: 2026
+            default: 2016
+        - name: end_year
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 2016
+            maximum: 2026
+            default: 2025
+      responses:
+        '200':
+          description: Inflationsdaten
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  statistics:
+                    type: object
+                    properties:
+                      avg_yearly_inflation:
+                        type: number
+                        description: Durchschnittliche jährliche Inflation in %
+                      total_inflation:
+                        type: number
+                        description: Gesamte Inflation über Periode in %
+                  yearly_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        year:
+                          type: integer
+                        avg_premium_chf:
+                          type: number
+                        inflation_rate:
+                          type: number
+                        cumulative_inflation:
+                          type: number
+
+  /premiums/compare-years:
+    get:
+      operationId: compareYears
+      summary: Vergleiche zwei Jahre
+      description: Direkter Vergleich der Prämien zwischen zwei Jahren. Zeigt welche Kassen teurer/günstiger wurden.
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: year1
+          in: query
+          required: false
+          description: Erstes Jahr
+          schema:
+            type: string
+            default: "2020"
+        - name: year2
+          in: query
+          required: false
+          description: Zweites Jahr
+          schema:
+            type: string
+            default: "2026"
+        - name: canton
+          in: query
+          required: false
+          description: Kanton
+          schema:
+            type: string
+            default: ZH
+        - name: profile
+          in: query
+          required: false
+          description: Profil
+          schema:
+            type: string
+            enum: [single_adult, couple, family_1kid, family_2kids, student, young_adult]
+            default: single_adult
+        - name: limit
+          in: query
+          required: false
+          description: Anzahl Resultate
+          schema:
+            type: string
+            default: "10"
+      responses:
+        '200':
+          description: Jahresvergleich
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        insurer:
+                          type: object
+                        model_type:
+                          type: string
+                        change_chf:
+                          type: number
+                        change_percent:
+                          type: number
+
+  /premiums/ranking:
+    get:
+      operationId: getPremiumsRanking
+      summary: Top-Kassen Ranking über Jahre
+      description: Zeigt welche Kassen über die Jahre konstant günstig waren. Perfekt für "War Assura schon immer günstig?"
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: canton
+          in: query
+          required: false
+          description: Kanton
+          schema:
+            type: string
+            default: ZH
+        - name: profile
+          in: query
+          required: false
+          description: Profil
+          schema:
+            type: string
+            enum: [single_adult, couple, family_1kid, family_2kids, student, young_adult]
+            default: single_adult
+        - name: years
+          in: query
+          required: false
+          description: Komma-getrennte Jahre (z.B. "2020,2023,2025")
+          schema:
+            type: string
+            default: "2020,2023,2025"
+        - name: top
+          in: query
+          required: false
+          description: Top N Kassen pro Jahr
+          schema:
+            type: string
+            default: "5"
+      responses:
+        '200':
+          description: Rankings über Jahre
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  rankings:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rank:
+                            type: integer
+                          insurer:
+                            type: string
+                          model:
+                            type: string
+                          premium_chf:
+                            type: number
+                  insights:
+                    type: object
+                    properties:
+                      consistent_performers:
+                        type: array
+                        items:
+                          type: string
+
+  # Bestehende Endpoints (gekürzt für Übersichtlichkeit)
+  /meta/sources:
+    get:
+      operationId: getMetaSources
+      summary: Datenquelle und API-Status
+      description: Gibt Informationen über verfügbare Jahre und Datenversion zurück.
+      responses:
+        '200':
+          description: Meta-Information
+
+  /premiums/quote:
+    get:
+      operationId: getPremiumQuote
+      summary: Prämien-Angebote suchen
+      description: Hauptendpoint für aktuelle Prämienabfragen (2026).
+      parameters:
+        - name: canton
+          in: query
+          required: true
+          description: Kanton (2-Buchstaben-Code, z.B. ZH, BE, GE)
+          schema:
+            type: string
+            example: "ZH"
+        - name: age_band
+          in: query
+          required: false
+          description: Altersgruppe (child, young_adult, adult)
+          schema:
+            type: string
+            enum: [child, young_adult, adult]
+            default: adult
+        - name: franchise_chf
+          in: query
+          required: false
+          description: Franchise in CHF
+          schema:
+            type: string
+            enum: ["0", "100", "200", "300", "400", "500", "600", "1000", "1500", "2000", "2500"]
+            default: "2500"
+        - name: accident_covered
+          in: query
+          required: false
+          description: Mit Unfallversicherung
+          schema:
+            type: boolean
+            default: true
+        - name: model_type
+          in: query
+          required: false
+          description: Versicherungsmodell (standard, hmo, telmed, family_doctor, diverse)
+          schema:
+            type: string
+            enum: [standard, hmo, telmed, family_doctor, diverse]
+            default: standard
+        - name: limit
+          in: query
+          required: false
+          description: Anzahl Resultate
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Prämien-Liste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: object
+                    description: Die verwendeten Suchparameter
+                  results:
+                    type: array
+                    description: Liste der gefundenen Prämien
+                    items:
+                      type: object
+                      properties:
+                        insurer_id:
+                          type: string
+                        insurer_name:
+                          type: string
+                        monthly_premium_chf:
+                          type: number
+                        annual_premium_chf:
+                          type: number
+                        model_type:
+                          type: string
+                        canton:
+                          type: string
+                        region:
+                          type: string
+                        tariff_name:
+                          type: string
+                  count:
+                    type: integer
+                    description: Anzahl gefundene Prämien
+                  statistics:
+                    type: object
+                    properties:
+                      min:
+                        type: number
+                      max:
+                        type: number
+                      median:
+                        type: number
+                      average:
+                        type: number
+
+  /premiums/cheapest:
+    get:
+      operationId: getCheapestPremiums
+      summary: Günstigste Prämien für Profile
+      description: Top günstigste Versicherungen für vordefinierte Profile (2026).
+      parameters:
+        - name: canton
+          in: query
+          required: true
+          description: Kanton (2-Buchstaben-Code)
+          schema:
+            type: string
+            example: "ZH"
+        - name: profile
+          in: query
+          required: true
+          description: Profil (single_adult, couple, family_1kid, family_2kids, student, young_adult)
+          schema:
+            type: string
+            enum: [single_adult, couple, family_1kid, family_2kids, student, young_adult]
+            example: "single_adult"
+        - name: limit
+          in: query
+          required: false
+          description: Anzahl Resultate (Standard 5, Max 20)
+          schema:
+            type: integer
+            default: 5
+      responses:
+        '200':
+          description: Top Prämien
+
+components:
+  schemas: {}
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API-Schlüssel für Zugriff

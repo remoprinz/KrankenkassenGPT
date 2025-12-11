@@ -1,0 +1,38 @@
+{
+  "name": "swisshealth-api",
+  "version": "0.1.0",
+  "description": "SwissHealth GPT API - Offizielle Schweizer Krankenkassen-Prämien für ChatGPT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "tsc",
+    "download": "tsx scripts/download-bag-data.ts",
+    "parse": "tsx scripts/parse-excel.ts",
+    "import": "tsx scripts/import-to-db.ts",
+    "setup": "npm run download && npm run parse && npm run import",
+    "test": "tsx scripts/test-api.ts",
+    "download:historical": "tsx scripts/download-historical-data.ts",
+    "transform:historical": "tsx scripts/transform-historical.ts",
+    "import:historical": "tsx scripts/import-historical.ts",
+    "setup:historical": "npm run download:historical && npm run transform:historical && npm run import:historical",
+    "test:local": "node local-server.js",
+    "test:direct": "node test-direct.js",
+    "normalize:ids": "tsx scripts/normalize-insurer-ids.ts",
+    "restore:db": "tsx scripts/restore-and-normalize.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "xlsx": "^0.18.5"
+  }
+}

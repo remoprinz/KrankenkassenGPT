@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-debug.log*
+
+# Environment (KRITISCH: Enthält API-Keys!)
+.env
+.env.*
+!.env.example
+functions/.env
+functions/.env.*
+
+# Build
+dist/
+.vercel/
+.firebase/
+functions/lib/
+
+# Data (Rohdaten und transformierte Daten - zu groß für Git!)
+data/
+!data/.gitkeep
+!data/insurer-mapping.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+import-progress.log
+
+
