@@ -1,0 +1,104 @@
+{
+  "project": "swisshealth-api",
+  "version": "2.0",
+  "language": "de",
+  "core": {
+    "why": "Die API demokratisiert den Zugang zu Schweizer Krankenkassenprämien und ermöglicht es jedem, informierte Entscheidungen über seine Gesundheitskosten zu treffen.",
+    "what": "Eine umfassende API für historische und aktuelle Krankenkassenprämien, die in ChatGPT Custom GPTs und anderen Anwendungen integriert werden kann.",
+    "impact": "Transparenz im komplexen Schweizer Gesundheitssystem, bessere Vergleichsmöglichkeiten und potenziell Kosteneinsparungen für Versicherte."
+  },
+  "perspectives": {
+    "builder": {
+      "audience": [
+        "developers",
+        "data scientists",
+        "AI engineers"
+      ],
+      "story": "Entwicklung einer serverless, AI-nativen Applikation mit Firebase Functions, Supabase PostgreSQL und einem automatisierten Daten-Pipeline. Die Komplexität der Datenaufbereitung und Integration in ChatGPT wurde durch TypeScript, Daten-Transformation-Skripte und eine robuste API-Architektur gemeistert. Die automatische Chart-Generierung (QuickChart.io) rundet die technische Exzellenz ab.",
+      "topics": [
+        "Firebase Functions",
+        "Supabase PostgreSQL",
+        "ChatGPT Custom GPT",
+        "OpenAPI",
+        "TypeScript",
+        "Serverless Architecture",
+        "Data Pipeline",
+        "QuickChart.io"
+      ],
+      "voice": "Technisch, präzise, lösungsorientiert, stolz auf die saubere Architektur und effiziente Implementierung."
+    },
+    "market": {
+      "audience": [
+        "Versicherte",
+        "Journalisten",
+        "Politiker",
+        "Verbraucherschutzorganisationen",
+        "Gesundheitsökonomen"
+      ],
+      "story": "Vergleichen Sie einfach und schnell Krankenkassenprämien, analysieren Sie Trends und finden Sie die günstigsten Angebote. Die API macht die intransparente Welt der Schweizer Krankenkassen zugänglicher und hilft Ihnen, Geld zu sparen.",
+      "topics": [
+        "Krankenkassenprämien",
+        "Gesundheitskosten",
+        "Versicherungsvergleich",
+        "Transparenz",
+        "Kosteneinsparungen",
+        "Open Data",
+        "ChatGPT"
+      ],
+      "voice": "Informativ, verständlich, nutzerzentriert, mit dem Fokus auf Kosteneinsparung und verbesserte Entscheidungsfindung."
+    }
+  },
+  "pestel_resonance": {
+    "political": [
+      "Gesundheitsreformen",
+      "Transparenzinitiativen im Gesundheitswesen",
+      "Datenstrategie Schweiz"
+    ],
+    "economic": [
+      "Steigende Krankenkassenprämien",
+      "Haushaltsbelastung durch Gesundheitskosten",
+      "Wettbewerb zwischen Krankenkassen"
+    ],
+    "social": [
+      "Informationsbedürfnis der Bevölkerung zu Gesundheitskosten",
+      "Demografischer Wandel und dessen Auswirkungen auf Prämien",
+      "Gesundheitskompetenz"
+    ],
+    "technological": [
+      "Open Data Initiativen",
+      "Fortschritte in der KI-gestützten Datenanalyse",
+      "Verbreitung von ChatGPT und ähnlichen Technologien"
+    ],
+    "environmental": [],
+    "legal": [
+      "Datenschutzgesetze (DSG)",
+      "Krankenversicherungsgesetz (KVG)",
+      "Offenlegungs- und Transparenzpflichten für Krankenkassen"
+    ]
+  },
+  "news_triggers": {
+    "keywords": [
+      "Krankenkassenprämien",
+      "Prämienerhöhung",
+      "Gesundheitskosten",
+      "Krankenversicherung Schweiz",
+      "Bundesamt für Gesundheit",
+      "BAG Priminfo",
+      "Open Data Gesundheit",
+      "ChatGPT Krankenkasse",
+      "Versicherungsvergleich",
+      "Transparenzregister Krankenkassen",
+      "Einheitskasse"
+    ],
+    "events": [
+      "Jährliche Prämienbekanntgabe",
+      "Abstimmungen über Gesundheitsinitiativen",
+      "Veröffentlichung von BAG-Studien zu Gesundheitskosten"
+    ],
+    "debates": [
+      "Diskussionen über die Finanzierung des Gesundheitswesens",
+      "Reformvorschläge zur Senkung der Krankenkassenprämien",
+      "Streit um die Transparenz von Krankenkassen"
+    ]
+  }
+}

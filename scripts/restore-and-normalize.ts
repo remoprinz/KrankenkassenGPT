@@ -407,6 +407,12 @@ async function verifyData() {
   }
 }
 
+interface ApiResponse {
+  recommendations?: any[];
+  timeline?: any[];
+  error?: any;
+}
+
 async function testAPI() {
   console.log(`${colors.cyan}============================================================${colors.reset}`);
   console.log(`${colors.cyan}SCHRITT 5: API-TESTS${colors.reset}`);
@@ -433,7 +439,7 @@ async function testAPI() {
       const response = await fetch(test.url, {
         headers: { 'X-API-Key': apiKey }
       });
-      const data = await response.json();
+      const data = await response.json() as ApiResponse;
       
       if (response.ok) {
         const resultCount = data.recommendations?.length || data.timeline?.length || 0;

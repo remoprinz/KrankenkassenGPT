@@ -65,7 +65,13 @@ export interface PremiumResult {
   tariff_name?: string;
 }
 
-export interface QuoteResponse {
+// Common response properties
+export interface WithChart {
+  chart_url?: string;
+  _display_instructions?: string;
+}
+
+export interface QuoteResponse extends WithChart {
   query: {
     canton: string;
     age_band: AgeBand;
@@ -85,7 +91,7 @@ export interface QuoteResponse {
   disclaimer: string;
 }
 
-export interface CheapestResponse {
+export interface CheapestResponse extends WithChart {
   profile: {
     type: Profile;
     age_band: AgeBand;
@@ -124,7 +130,7 @@ export interface CompareRequest {
   canton: string;
 }
 
-export interface CompareResponse {
+export interface CompareResponse extends WithChart {
   comparison: Array<{
     insurer_id: string;
     insurer_name?: string;

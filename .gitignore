@@ -35,4 +35,9 @@ Thumbs.db
 npm-debug.log*
 import-progress.log
 
+# Test Artifacts (Charts)
+functions/*.png
+*.png
 
+# MCP Config mit sensiblen Daten (falls vorhanden)
+.cursor/

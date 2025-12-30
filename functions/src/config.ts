@@ -58,6 +58,13 @@ export const CONFIG: any = {
       accident_covered: true,
       description: 'Familie mit 2+ Kindern, tiefe Franchise'
     },
+    // Fallback für ChatGPT
+    'family_3kids': {
+      age_band: 'adult',
+      franchise_chf: 500,
+      accident_covered: true,
+      description: 'Familie mit 3 Kindern (Fallback)'
+    },
     'student': {
       age_band: 'young_adult',
       franchise_chf: 2500,

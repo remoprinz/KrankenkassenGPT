@@ -2,9 +2,10 @@
 
 **Schweizer Krankenkassen-Prämien API für ChatGPT Custom GPT**
 
-Version: 2.2.0  
+Version: 2.3.0  
 Status: ✅ Produktionsbereit  
-Daten: 1.6 Millionen Prämien-Einträge (2016-2026)
+Daten: 1.6 Millionen Prämien-Einträge (2016-2026)  
+NEU: 📊 Automatische Chart-Visualisierungen
 
 **📚 Alle Dokumentationen:** Siehe [INDEX.md](INDEX.md)
 
@@ -22,6 +23,7 @@ Diese API stellt umfassende historische und aktuelle Krankenkassen-Prämien-Date
 - 📈 **Timeline-Analysen** mit Trend-Prognosen
 - 💰 **Alle Franchisen** (0-2500 CHF) und Modelle
 - 🔍 **Vergleiche** zwischen Jahren und Versicherern
+- 📊 **Automatische Charts** für alle Datenabfragen (JWT-gesichert)
 
 ---
 
@@ -31,8 +33,10 @@ Diese API stellt umfassende historische und aktuelle Krankenkassen-Prämien-Date
 Firebase Functions → API Endpoints
          ↓
     Supabase PostgreSQL → Daten
-         ↓
-    ChatGPT Custom GPT → User Interface
+         ↓                   ↘
+    ChatGPT Custom GPT       JWT → QuickChart.io
+         ↓                        ↘
+    User Interface                 Charts (PNG)
 ```
 
 ### Technologie-Stack

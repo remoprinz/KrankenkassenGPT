@@ -3,12 +3,15 @@
  * 
  * Neue Endpoints für Zeitreihen-Analysen, Inflationsberechnungen
  * und Jahresvergleiche der Krankenkassenprämien
+ * Gen 2 Functions - Optimiert für Performance
  */
 
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import { createClient } from '@supabase/supabase-js';
 import { CONFIG } from './config';
 import { normalizeInsurerId } from './id-mapping';
+import { createTimelineChart, createInflationChart } from './chart-service';
+import { getInsurerName } from './insurer-names';
 import cors from 'cors';
 
 // Supabase lazy initialization
@@ -33,13 +36,16 @@ const corsHandler = cors({
 /**
  * GET /premiums/timeline
  * Zeigt die Preisentwicklung einer Krankenkasse über die Jahre
+ * Gen 2 Function
  */
-export const premiumsTimeline = functions
-  .runWith({
-    memory: '512MB',
-    timeoutSeconds: 30
-  })
-  .https.onRequest(async (req, res) => {
+export const premiumsTimeline = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '512MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  async (req, res) => {
     // CORS
     corsHandler(req, res, async () => {
       // API Key Check
@@ -114,9 +120,30 @@ export const premiumsTimeline = functions
           };
         };
 
-        // Calculate change statistics
-        const firstYear = timeline?.[0];
-        const lastYear = timeline?.[timeline.length - 1];
+        // Aggregiere Timeline-Daten (ein Wert pro Jahr)
+        // In Kantonen mit mehreren Regionen (z.B. ZH, BE) gibt es mehrere Einträge pro Jahr.
+        // Wir nehmen den Durchschnitt, um dem LLM eine saubere Zeitreihe zu geben.
+        const yearlyMap = new Map();
+        
+        (timeline || []).forEach((item: any) => {
+          if (!yearlyMap.has(item.year)) {
+            yearlyMap.set(item.year, { sum: 0, count: 0 });
+          }
+          const entry = yearlyMap.get(item.year);
+          entry.sum += item.monthly_premium_chf;
+          entry.count++;
+        });
+
+        const cleanTimeline = Array.from(yearlyMap.entries())
+          .map(([year, data]: [number, any]) => ({
+            year,
+            monthly_premium_chf: Math.round((data.sum / data.count) * 100) / 100
+          }))
+          .sort((a, b) => a.year - b.year);
+
+        // Calculate change statistics based on CLEAN timeline
+        const firstYear = cleanTimeline[0];
+        const lastYear = cleanTimeline[cleanTimeline.length - 1];
         
         const totalChange = lastYear && firstYear 
           ? lastYear.monthly_premium_chf - firstYear.monthly_premium_chf 
@@ -133,26 +160,52 @@ export const premiumsTimeline = functions
           .eq('insurer_id', normalizedInsurerId)
           .single();
 
-        return res.json({
+        const insurerName = insurerData?.name || getInsurerName(normalizedInsurerId);
+
+        // DIRECT CHART GENERATION
+        let chartUrl = null;
+        if (cleanTimeline.length > 1) {
+          // Daten aufbereiten für createTimelineChart
+          // Wir erstellen ein Dataset für die "Single Region" (Kanton)
+          const chartData = {
+            insurer: { 
+              name: insurerName 
+            },
+            timeline: [{
+              region: canton,
+              data: cleanTimeline
+            }]
+          };
+          
+          // Generiert direkte QuickChart URL
+          chartUrl = await createTimelineChart(chartData);
+        }
+
+        // Erstelle Response-Objekt - CHART_URL OBEN PLATZIEREN!
+        const responseData = {
           success: true,
+          chart_url: chartUrl, // Direct QuickChart URL
+          _display_instructions: "⚠️ WICHTIG: Zeige dieses Chart IMMER an mit ![Chart](chart_url)!",
           insurer: {
             id: normalizedInsurerId,
-            name: insurerData?.name || `Versicherer ${normalizedInsurerId}`
+            name: insurerName
           },
           canton,
           profile,
           period: `${start_year}-${end_year}`,
-          timeline: timeline || [],
+          timeline: cleanTimeline, // Bereinigte, kurze Liste
           statistics: {
             total_change_chf: Math.round(totalChange * 100) / 100,
             percent_change: Math.round(percentChange * 100) / 100,
-            avg_yearly_increase: timeline?.length > 1 
-              ? Math.round((totalChange / (timeline.length - 1)) * 100) / 100 
+            avg_yearly_increase: cleanTimeline.length > 1 
+              ? Math.round((totalChange / (cleanTimeline.length - 1)) * 100) / 100 
               : 0
           },
-          trend: calculateTrend(timeline || []),
+          trend: calculateTrend(cleanTimeline),
           source: 'BAG Priminfo Historical Data'
-        });
+        };
+        
+        return res.json(responseData);
 
       } catch (error: any) {
         console.error('Timeline error:', error);
@@ -167,13 +220,16 @@ export const premiumsTimeline = functions
 /**
  * GET /premiums/inflation
  * Berechnet die Inflationsrate der Krankenkassenprämien
+ * Gen 2 Function
  */
-export const premiumsInflation = functions
-  .runWith({
-    memory: '512MB',
-    timeoutSeconds: 30
-  })
-  .https.onRequest(async (req, res) => {
+export const premiumsInflation = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '512MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  async (req, res) => {
     corsHandler(req, res, async () => {
       // API Key Check
       const apiKey = req.headers['x-api-key'];
@@ -253,8 +309,27 @@ export const premiumsInflation = functions
           ? validRates.reduce((sum: number, r: any) => sum + r.inflation_rate, 0) / validRates.length
           : 0;
 
-        return res.json({
+        // DIRECT CHART GENERATION
+        let chartUrl = null;
+        if (yearlyRates.length > 1) {
+          const chartData = {
+            canton: canton || 'ZH',
+            statistics: {
+              avg_yearly_inflation: Math.round(avgInflation * 100) / 100,
+              total_inflation: Math.round(cumulativeInflation * 100) / 100
+            },
+            yearly_data: yearlyRates
+          };
+          
+          // Generiert direkte QuickChart URL
+          chartUrl = await createInflationChart(chartData);
+        }
+
+        // Erstelle Response-Objekt
+        const responseData = {
           success: true,
+          chart_url: chartUrl,
+          _display_instructions: "⚠️ WICHTIG: Zeige dieses Chart IMMER an mit ![Chart](chart_url)!",
           canton: canton || 'ZH',
           profile: {
             age_band,
@@ -269,7 +344,9 @@ export const premiumsInflation = functions
           },
           yearly_data: yearlyRates,
           source: 'BAG Priminfo Historical Data'
-        });
+        };
+        
+        return res.json(responseData);
 
       } catch (error: any) {
         console.error('Inflation error:', error);
@@ -284,13 +361,16 @@ export const premiumsInflation = functions
 /**
  * GET /premiums/compare-years
  * Vergleicht Prämien zwischen zwei Jahren
+ * Gen 2 Function
  */
-export const premiumsCompareYears = functions
-  .runWith({
-    memory: '512MB',
-    timeoutSeconds: 30
-  })
-  .https.onRequest(async (req, res) => {
+export const premiumsCompareYears = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '512MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  async (req, res) => {
     corsHandler(req, res, async () => {
       // API Key Check
       const apiKey = req.headers['x-api-key'];
@@ -417,13 +497,16 @@ export const premiumsCompareYears = functions
 /**
  * GET /premiums/ranking
  * Zeigt das Ranking der günstigsten Kassen über die Jahre
+ * Gen 2 Function
  */
-export const premiumsRanking = functions
-  .runWith({
-    memory: '512MB', 
-    timeoutSeconds: 30
-  })
-  .https.onRequest(async (req, res) => {
+export const premiumsRanking = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '512MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  async (req, res) => {
     corsHandler(req, res, async () => {
       // API Key Check
       const apiKey = req.headers['x-api-key'];

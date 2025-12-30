@@ -1,13 +1,16 @@
 /**
  * SwissHealth Firebase Functions API
  * 9 Endpoints für ChatGPT Actions (inkl. historische Daten)
+ * Gen 2 Functions - Optimiert für Performance
  */
 
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import { CONFIG } from './config';
+import { getChartUrl, createComparisonChart } from './chart-service';
+import { getInsurerName } from './insurer-names';
 import type {
   MetaResponse,
   RegionLookupResponse,
@@ -76,9 +79,16 @@ function getStatistics(premiums: Premium[]): { min: number; max: number; median:
 
 // ============================================================================
 // ENDPOINT 1: GET /meta/sources
+// Gen 2 Function
 // ============================================================================
-export const metaSources = functions
-  .https.onRequest((req, res) => {
+export const metaSources = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 30,
+    maxInstances: 100
+  },
+  (req, res) => {
   corsHandler(req, res, async () => {
     // ✅ SICHERHEIT: API Key Validation
     if (!validateApiKey(req)) {
@@ -116,9 +126,16 @@ export const metaSources = functions
 
 // ============================================================================
 // ENDPOINT 2: GET /regions/lookup
+// Gen 2 Function
 // ============================================================================
-export const regionsLookup = functions
-  .https.onRequest((req, res) => {
+export const regionsLookup = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 30,
+    maxInstances: 100
+  },
+  (req, res) => {
   corsHandler(req, res, async () => {
     // ✅ SICHERHEIT: API Key Validation
     if (!validateApiKey(req)) {
@@ -178,9 +195,17 @@ export const regionsLookup = functions
 
 // ============================================================================
 // ENDPOINT 3: GET /premiums/quote
+// Gen 2 Function  
+// UPDATED: Chart URL Signature Fix (2025-12-25)
 // ============================================================================
-export const premiumsQuote = functions
-  .https.onRequest((req, res) => {
+export const premiumsQuote = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 30,
+    maxInstances: 100
+  },
+  (req, res) => {
   corsHandler(req, res, async () => {
     // ✅ SICHERHEIT: API Key Validation
     if (!validateApiKey(req)) {
@@ -196,8 +221,20 @@ export const premiumsQuote = functions
         const canton = req.query.canton as string;
     const ageBand = req.query.age_band as string;
         const franchise = parseInt(req.query.franchise_chf as string);
-        const accident = req.query.accident_covered === 'true';
+        // DEFAULT: true (die meisten Leute haben Unfallversicherung)
+        const accident = req.query.accident_covered !== undefined 
+          ? req.query.accident_covered === 'true'
+          : true; 
     const modelType = req.query.model_type as string;
+    // Limit Parameter (mit robustem Parsing)
+    let limit = 10; // Default
+    if (req.query.limit) {
+      const parsedLimit = parseInt(req.query.limit as string, 10);
+      if (!isNaN(parsedLimit) && parsedLimit > 0) {
+        limit = Math.min(parsedLimit, 100); // Max 100 für Performance
+      }
+    }
+    console.log('Requested limit:', req.query.limit, 'Parsed limit:', limit);
 
     // Validation
     if (!canton || !CONFIG.CANTON_NAMES[canton]) {
@@ -270,9 +307,12 @@ export const premiumsQuote = functions
         (insurers || []).map((i: any) => [i.insurer_id, i.name])
       );
 
-      const results = premiums.map((p: any) => ({
+      // Limit anwenden (ChatGPT erwartet genau die Anzahl, die es anfragt!)
+      const limitedPremiums = premiums.slice(0, limit);
+      
+      const results = limitedPremiums.map((p: any) => ({
         insurer_id: p.insurer_id,
-        insurer_name: insurerMap.get(p.insurer_id) || `Insurer ${p.insurer_id}`,
+        insurer_name: insurerMap.get(p.insurer_id) || getInsurerName(p.insurer_id),
         monthly_premium_chf: p.monthly_premium_chf,
         annual_premium_chf: p.monthly_premium_chf * 12,
         model_type: p.model_type,
@@ -281,17 +321,49 @@ export const premiumsQuote = functions
         tariff_name: p.tariff_name
       }));
 
-        const response: QuoteResponse = {
-          query: {
+      // Chart URL generieren (VOR dem Response-Objekt)
+      let chartUrl = undefined;
+      if (results.length > 0) {
+        try {
+          const topResults = results.slice(0, 5); // Max 5 für Chart
+          const cantonName = CONFIG.CANTON_NAMES[canton] || canton;
+          
+          const chartData = topResults.map((r: any) => ({
+            insurer_name: r.insurer_name,
+            monthly_premium_chf: r.monthly_premium_chf,
+            title: `Top ${topResults.length} Günstigste - ${cantonName}`,
+            subtitle: `${ageBand === 'adult' ? 'Erwachsene' : ageBand === 'young_adult' ? 'Junge Erwachsene' : 'Kinder'} | CHF ${franchise} Franchise`
+          }));
+
+          // Asynchron Chart generieren
+          chartUrl = await createComparisonChart(chartData);
+        } catch (chartError) {
+          console.error('Chart generation failed:', chartError);
+          // Fallback zur statischen URL Signatur, falls dynamische Generierung fehlschlägt
+          chartUrl = getChartUrl('comparison', {
             canton,
-            age_band: ageBand as any,
+            age_band: ageBand,
             franchise_chf: franchise,
             accident_covered: accident,
-            model_type: modelType as any
-          },
+            model_type: modelType,
+            limit: 5
+          });
+        }
+      }
+
+      const response: QuoteResponse = {
+        chart_url: chartUrl,
+        _display_instructions: "⚠️ WICHTIG: Zeige dieses Chart IMMER an mit ![Chart](chart_url)!",
+        query: {
+          canton,
+          age_band: ageBand as any,
+          franchise_chf: franchise,
+          accident_covered: accident,
+          model_type: modelType as any
+        },
         results,
         count: results.length,
-        statistics: getStatistics(premiums),
+        statistics: getStatistics(limitedPremiums),
         source: CONFIG.DATA_SOURCE,
         disclaimer: 'Preise sind unverbindlich. Bitte prüfen Sie die aktuellen Konditionen direkt beim Versicherer.'
       };
@@ -315,3 +387,9 @@ export {
   premiumsCompareYears, 
   premiumsRanking 
 } from './historical-endpoints';
+
+// Import chart endpoints
+export { chartsImg, chartsTest } from './chart-endpoints';
+
+// Import lead endpoints
+export { leadsSubmit } from './leads-endpoint';

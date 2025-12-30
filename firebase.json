@@ -9,39 +9,80 @@
     "rewrites": [
       {
         "source": "/meta/sources",
-        "function": "metaSources"
+        "function": {
+          "functionId": "metaSources",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/regions/lookup",
-        "function": "regionsLookup"
+        "function": {
+          "functionId": "regionsLookup",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/quote",
-        "function": "premiumsQuote"
+        "function": {
+          "functionId": "premiumsQuote",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/cheapest",
-        "function": "premiumsCheapest"
+        "function": {
+          "functionId": "premiumsCheapest",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/compare",
-        "function": "premiumsCompare"
+        "function": {
+          "functionId": "premiumsCompare",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/timeline",
-        "function": "premiumsTimeline"
+        "function": {
+          "functionId": "premiumsTimeline",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/inflation",
-        "function": "premiumsInflation"
+        "function": {
+          "functionId": "premiumsInflation",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/compare-years",
-        "function": "premiumsCompareYears"
+        "function": {
+          "functionId": "premiumsCompareYears",
+          "region": "europe-west1"
+        }
       },
       {
         "source": "/premiums/ranking",
-        "function": "premiumsRanking"
+        "function": {
+          "functionId": "premiumsRanking",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/charts/img",
+        "function": {
+          "functionId": "chartsImg",
+          "region": "europe-west1"
+        }
+      },
+      {
+        "source": "/leads/submit",
+        "function": {
+          "functionId": "leadsSubmit",
+          "region": "europe-west1"
+        }
       }
     ],
     "headers": [

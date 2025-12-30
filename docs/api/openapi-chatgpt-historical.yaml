@@ -1,11 +1,13 @@
 openapi: 3.1.0
 info:
-  title: Swiss Health Insurance Premium API (Historical)
+  title: Swiss Health Insurance Premium API (Historical + Charts + Leads)
   description: |
     Erweiterte API mit historischen Daten (2016-2025) + Aktuell (2026).
     1.6 Millionen Einträge, 51 Versicherer: Alle Altersgruppen, alle Franchisen, alle Modelle!
     NEU: Preisentwicklung, Inflationsraten, Jahresvergleiche und Rankings.
-  version: 2.2.0
+    ✨ Charts: Automatische Chart-Generierung für alle Datenendpoints!
+    🚀 NEU v2.4.0: Lead-Erfassung - Kunden können direkt im Chat eine Offerte anfragen!
+  version: 2.4.0
   contact:
     name: SwissHealth API Support
     email: support@swisshealth-api.ch
@@ -108,6 +110,9 @@ paths:
                         type: number
                       prediction_2027:
                         type: number
+                  chart_url:
+                    type: string
+                    description: URL zu einem automatisch generierten Liniendiagramm der Preisentwicklung
 
   /premiums/inflation:
     get:
@@ -197,6 +202,9 @@ paths:
                           type: number
                         cumulative_inflation:
                           type: number
+                  chart_url:
+                    type: string
+                    description: URL zu einem kombinierten Balken-/Liniendiagramm der Inflationsentwicklung
 
   /premiums/compare-years:
     get:
@@ -444,6 +452,9 @@ paths:
                         type: number
                       average:
                         type: number
+                  chart_url:
+                    type: string
+                    description: URL zu einem Balkendiagramm der Top 5 günstigsten Angebote
 
   /premiums/cheapest:
     get:
@@ -476,6 +487,116 @@ paths:
       responses:
         '200':
           description: Top Prämien
+
+  /leads/submit:
+    post:
+      operationId: submitLead
+      summary: Offerte anfragen / Lead erfassen
+      description: |
+        Wenn der User ein Angebot buchen oder eine Offerte anfragen möchte, 
+        sammle die nötigen Daten und rufe diesen Endpoint auf.
+        Der User erhält eine Bestätigungs-E-Mail mit allen Details.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - name
+                - insurer_id
+                - monthly_premium_chf
+                - canton
+                - age_band
+                - franchise_chf
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: E-Mail-Adresse des Kunden
+                  example: "max.muster@example.ch"
+                name:
+                  type: string
+                  description: Vor- und Nachname des Kunden
+                  example: "Max Muster"
+                phone:
+                  type: string
+                  description: Telefonnummer (optional)
+                  example: "079 123 45 67"
+                insurer_id:
+                  type: string
+                  description: ID des gewählten Versicherers
+                  example: "1318"
+                insurer_name:
+                  type: string
+                  description: Name des Versicherers (optional, wird automatisch ermittelt)
+                  example: "Assura"
+                monthly_premium_chf:
+                  type: number
+                  description: Monatliche Prämie in CHF
+                  example: 305.10
+                canton:
+                  type: string
+                  description: Kanton (2-Buchstaben-Code)
+                  example: "ZH"
+                age_band:
+                  type: string
+                  enum: [child, young_adult, adult]
+                  description: Altersgruppe
+                  example: "adult"
+                franchise_chf:
+                  type: integer
+                  description: Gewählte Franchise in CHF
+                  example: 2500
+                model_type:
+                  type: string
+                  enum: [standard, hmo, telmed, family_doctor, diverse]
+                  description: Versicherungsmodell
+                  default: "standard"
+                accident_covered:
+                  type: boolean
+                  description: Mit Unfallversicherung
+                  default: true
+                message:
+                  type: string
+                  description: Zusätzliche Nachricht des Kunden (optional)
+      responses:
+        '200':
+          description: Lead erfolgreich erfasst
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  lead_id:
+                    type: string
+                    description: Eindeutige ID des Leads
+                  email_sent:
+                    type: boolean
+                    description: Ob die Bestätigungs-E-Mail gesendet wurde
+                  message:
+                    type: string
+                    description: Bestätigungsnachricht
+                  offer:
+                    type: object
+                    properties:
+                      insurer:
+                        type: string
+                      monthly_premium_chf:
+                        type: number
+                      annual_premium_chf:
+                        type: number
+                      canton:
+                        type: string
+        '400':
+          description: Ungültige Eingabe
+        '500':
+          description: Serverfehler
 
 components:
   schemas: {}

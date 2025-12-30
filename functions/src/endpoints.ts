@@ -1,11 +1,14 @@
 /**
  * SwissHealth API - Additional Endpoints
+ * Gen 2 Functions - Optimiert für Performance
  */
 
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import cors from 'cors';
 import { getSupabase, validateApiKey } from './index';
 import { CONFIG } from './config';
+import { createComparisonChart } from './chart-service';
+import { getInsurerName } from './insurer-names';
 import type {
   CheapestResponse,
   CompareRequest,
@@ -49,9 +52,16 @@ function getStatistics(premiums: Premium[]): { min: number; max: number; median:
 
 // ============================================================================
 // ENDPOINT 4: GET /premiums/cheapest
+// Gen 2 Function
 // ============================================================================
-export const premiumsCheapest = functions
-  .https.onRequest((req, res) => {
+export const premiumsCheapest = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  (req, res) => {
   corsHandler(req, res, async () => {
     // ✅ SICHERHEIT: API Key Validation
     if (!validateApiKey(req)) {
@@ -122,7 +132,7 @@ export const premiumsCheapest = functions
       const recommendations = cheapest.map((p: any, index: number) => ({
         rank: index + 1,
         insurer_id: p.insurer_id,
-        insurer_name: insurerMap.get(p.insurer_id) || `Insurer ${p.insurer_id}`,
+        insurer_name: insurerMap.get(p.insurer_id) || getInsurerName(p.insurer_id),
         model_type: p.model_type,
         monthly_premium_chf: p.monthly_premium_chf,
         annual_premium_chf: p.monthly_premium_chf * 12,
@@ -131,7 +141,27 @@ export const premiumsCheapest = functions
         tariff_name: p.tariff_name
       }));
 
+      // DIRECT CHART GENERATION
+      let chartUrl = undefined;
+      if (recommendations.length > 0) {
+        const cantonName = CONFIG.CANTON_NAMES[canton];
+        // Daten für createComparisonChart vorbereiten
+        const chartData = recommendations.map((r: any) => ({
+          insurer_name: r.insurer_name,
+          monthly_premium_chf: r.monthly_premium_chf,
+          title: `Top ${recommendations.length} Günstigste - ${cantonName}`,
+          subtitle: `${profileData.age_band === 'adult' ? 'Erwachsene' : profileData.age_band === 'young_adult' ? 'Junge Erwachsene' : 'Kinder'} | CHF ${profileData.franchise_chf} Franchise`,
+          canton: cantonName,
+          profile: profile
+        }));
+        
+        // Generiert direkte QuickChart URL
+        chartUrl = await createComparisonChart(chartData);
+      }
+
       const response: CheapestResponse = {
+        chart_url: chartUrl,
+        _display_instructions: "⚠️ WICHTIG: Zeige dieses Chart IMMER an mit ![Chart](chart_url)!",
         profile: {
           type: profile as any,
           ...profileData
@@ -158,9 +188,16 @@ export const premiumsCheapest = functions
 
 // ============================================================================
 // ENDPOINT 5: POST /premiums/compare
+// Gen 2 Function
 // ============================================================================
-export const premiumsCompare = functions
-  .https.onRequest((req, res) => {
+export const premiumsCompare = onRequest(
+  {
+    region: 'europe-west1',
+    memory: '256MiB',
+    timeoutSeconds: 60,
+    maxInstances: 100
+  },
+  (req, res) => {
   corsHandler(req, res, async () => {
     // ✅ SICHERHEIT: API Key Validation
     if (!validateApiKey(req)) {
@@ -231,7 +268,7 @@ export const premiumsCompare = functions
         if (!error && data) {
           results.push({
             ...option,
-            insurer_name: insurerMap.get(option.insurer_id) || `Insurer ${option.insurer_id}`,
+            insurer_name: insurerMap.get(option.insurer_id) || getInsurerName(option.insurer_id),
             monthly_premium_chf: data.monthly_premium_chf,
             annual_premium_chf: data.monthly_premium_chf * 12
           });
@@ -252,7 +289,7 @@ export const premiumsCompare = functions
 
       const comparison = results.map(r => ({
         insurer_id: r.insurer_id,
-        insurer_name: (r.insurer_name as string) || `Insurer ${r.insurer_id}`,
+        insurer_name: (r.insurer_name as string) || getInsurerName(r.insurer_id),
         model_type: r.model_type,
         franchise_chf: r.franchise_chf,
         monthly_premium_chf: r.monthly_premium_chf,
@@ -261,7 +298,26 @@ export const premiumsCompare = functions
         percentage_from_cheapest: ((r.monthly_premium_chf - cheapest.monthly_premium_chf) / cheapest.monthly_premium_chf * 100)
       }));
 
+      // DIRECT CHART GENERATION
+      let chartUrl = undefined;
+      // Für POST compare Endpoint auch Chart generieren?
+      // Ja, Vergleichschart macht Sinn.
+      if (comparison.length > 0) {
+        const cantonName = CONFIG.CANTON_NAMES[body.canton];
+        const chartData = comparison.map((r: any) => ({
+          insurer_name: r.insurer_name,
+          monthly_premium_chf: r.monthly_premium_chf,
+          title: `Individueller Vergleich - ${cantonName}`,
+          subtitle: `${profileData.age_band === 'adult' ? 'Erwachsene' : 'Kinder'} | ${body.for_profile}`,
+          canton: cantonName,
+          profile: body.for_profile
+        }));
+        
+        chartUrl = await createComparisonChart(chartData);
+      }
+
       const response: CompareResponse = {
+        chart_url: chartUrl, // Direct QuickChart URL
         comparison,
         cheapest: {
           insurer_id: cheapest.insurer_id,
