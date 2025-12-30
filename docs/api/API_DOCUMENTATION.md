@@ -342,7 +342,7 @@ Gibt Informationen über verfügbare Daten und Versionen zurück.
     "code": "NO_RESULTS",
     "message": "No premiums found for these criteria",
     "suggestion": "Try adjusting your search parameters",
-    "docs": "https://swisshealth-api.ch/docs#no_results",
+    "docs": "https://github.com/remoprinz/KrankenkassenGPT/blob/main/docs/api/API_DOCUMENTATION.md#no_results",
     "timestamp": "2025-12-11T01:00:00.000Z"
   }
 }

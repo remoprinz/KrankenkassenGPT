@@ -33,7 +33,7 @@ function errorResponse(code: string, message: string, suggestion?: string): Erro
       code,
       message,
       suggestion,
-      docs: 'https://swisshealth-api.ch/docs#' + code.toLowerCase(),
+      docs: 'https://github.com/remoprinz/KrankenkassenGPT/blob/main/docs/api/API_DOCUMENTATION.md#' + code.toLowerCase(),
       timestamp: new Date().toISOString()
     }
   };

@@ -320,7 +320,7 @@ curl "https://krankenkassen.ragit.io/premiums/quote?canton=ZH&age_band=adult&fra
 ## 📞 Support
 
 Für technische Fragen:
-- Email: support@swisshealth-api.ch
+- Email: remo@ragit.io
 - GitHub Issues (falls öffentlich)
 
 ---

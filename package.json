@@ -2,6 +2,8 @@
   "name": "swisshealth-api",
   "version": "0.1.0",
   "description": "SwissHealth GPT API - Offizielle Schweizer Krankenkassen-Prämien für ChatGPT",
+  "author": "Remo Prinz <remo@ragit.io>",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

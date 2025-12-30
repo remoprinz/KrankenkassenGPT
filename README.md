@@ -278,16 +278,20 @@ npx tsx scripts/import-complete-all.ts
 
 ## 📜 Lizenz
 
-Datenquelle: BAG Priminfo (Bundesamt für Gesundheit)  
-Lizenz: Freie Nutzung. Quellenangabe ist Pflicht.
+**Code-Lizenz:** MIT License (siehe [LICENSE](LICENSE))
+
+**Daten-Lizenz:** 
+- **Datenquelle:** BAG Priminfo (Bundesamt für Gesundheit)
+- **Lizenz der Daten:** Freie Nutzung. Quellenangabe ist Pflicht.
+- Die Daten selbst unterliegen der Open Data Lizenz des BAG und müssen bei Verwendung mit Quellenangabe versehen werden.
 
 ---
 
 ## 🙏 Support
 
 Bei Fragen oder Problemen:
-- Email: support@swisshealth-api.ch
-- API-Dokumentation: https://swisshealth-api.ch/docs
+- Email: remo@ragit.io
+- API-Dokumentation: Siehe `docs/api/API_DOCUMENTATION.md`
 
 ---
 
