@@ -9,6 +9,7 @@ import { Resend } from 'resend';
 import cors from 'cors';
 import { CONFIG } from './config';
 import { getInsurerName } from './insurer-names';
+import { validateApiKey } from './index';
 
 // Supabase lazy initialization
 let supabase: any = null;
@@ -81,19 +82,17 @@ function generateEmailHtml(lead: LeadInput): string {
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   
   <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="margin: 0; font-size: 24px;">🤖 [DEMO] Agentic Web Showcase</h1>
-    <p style="margin: 10px 0 0 0; opacity: 0.9;">Chat to Contract - Die Zukunft des E-Commerce</p>
+    <h1 style="margin: 0; font-size: 24px;">Agentic Web Showcase</h1>
+    <p style="margin: 10px 0 0 0; opacity: 0.9;">Chat to Contract – Der direkte Weg zum Abschluss</p>
   </div>
   
   <div style="background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; border-top: none;">
     
     <div style="background: #fef3c7; border-radius: 8px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #f59e0b;">
-      <h2 style="margin: 0 0 10px 0; color: #92400e; font-size: 18px;">🎯 Was Sie hier sehen:</h2>
       <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6;">
         <strong>Dies ist eine Demonstration des "Agentic Web".</strong><br><br>
         Sie haben gerade im Chat mit einer KI interagiert, und diese hat <strong>autonom – ohne menschliches Zutun</strong> – 
-        diese strukturierte Offerte erstellt und an Sie versendet.<br><br>
-        <strong>In Zukunft werden so Verträge direkt abgeschlossen: Chat to Contract.</strong>
+        diese strukturierte Offerte erstellt und an Sie versendet.
       </p>
     </div>
     
@@ -146,11 +145,6 @@ function generateEmailHtml(lead: LeadInput): string {
       <li style="margin-bottom: 10px;">Denken Sie an die Kündigungsfrist: <strong>30. November</strong> für das Folgejahr</li>
     </ol>
     
-    <div style="background: #ecfdf5; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #10b981;">
-      <strong>💡 Tipp:</strong> Die Grundversicherung ist bei allen Kassen identisch. 
-      Der Unterschied liegt im Service und den Zusatzversicherungen.
-    </div>
-    
     <div style="background: #e0e7ff; border-radius: 8px; padding: 15px; margin: 20px 0; border-left: 4px solid #6366f1;">
       <p style="margin: 0; color: #4338ca; font-size: 13px;">
         <strong>Hinweis:</strong> Diese Offerte ist eine <strong>Demo</strong> und basiert auf den offiziellen BAG-Daten für 2026. 
@@ -182,6 +176,15 @@ export const leadsSubmit = onRequest(
   },
   (req, res) => {
     corsHandler(req, res, async () => {
+      // ✅ SICHERHEIT: API Key Validation
+      if (!validateApiKey(req)) {
+        res.status(401).json({
+          success: false,
+          error: 'UNAUTHORIZED: Invalid or missing API key'
+        });
+        return;
+      }
+
       // Only POST allowed
       if (req.method !== 'POST') {
         res.status(405).json({ 
