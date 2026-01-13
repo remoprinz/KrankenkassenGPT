@@ -1,6 +1,6 @@
 {
-  "name": "@remoprinz/swisshealth-mcp-server",
-  "version": "1.0.0",
+  "name": "@prinz_esox/swiss-health-mcp",
+  "version": "2.0.0",
   "description": "Agent-Native MCP Server für Schweizer Krankenkassen-Prämien",
   "type": "module",
   "main": "build/index.js",

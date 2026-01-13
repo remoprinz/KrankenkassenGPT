@@ -7,6 +7,11 @@ build/
 .env.local
 .env.*.local
 
+# Test files (not needed in production)
+test-*.mjs
+test-*.txt
+test-*.js
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
