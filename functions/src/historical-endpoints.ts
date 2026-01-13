@@ -58,6 +58,8 @@ export const premiumsTimeline = onRequest(
         insurer_id, 
         canton, 
         profile = 'single_adult',
+        franchise_chf,
+        accident_covered,
         start_year = 2016,  // Changed from 2011 as we only have data from 2016
         end_year = 2025 
       } = req.query;
@@ -79,6 +81,10 @@ export const premiumsTimeline = onRequest(
           return res.status(400).json({ error: 'Invalid profile' });
         }
 
+        // Determine parameters (override profile if provided)
+        const franchise = franchise_chf ? parseInt(franchise_chf as string) : profileData.franchise_chf;
+        const accident = accident_covered !== undefined ? (String(accident_covered) === 'true') : profileData.accident_covered;
+
         // Extrahiere model_type aus query (falls vorhanden)
         const modelType = req.query.model_type as string || 'standard';
         
@@ -89,8 +95,8 @@ export const premiumsTimeline = onRequest(
           .eq('insurer_id', normalizedInsurerId)
           .eq('canton', canton)
           .eq('age_band', profileData.age_band)
-          .eq('franchise_chf', profileData.franchise_chf)
-          .eq('accident_covered', profileData.accident_covered)
+          .eq('franchise_chf', franchise)
+          .eq('accident_covered', accident)
           .eq('model_type', modelType)  // WICHTIG: model_type berücksichtigen!
           .gte('year', start_year)
           .lte('year', end_year)

@@ -21,7 +21,10 @@
     "test:local": "node local-server.js",
     "test:direct": "node test-direct.js",
     "normalize:ids": "tsx scripts/normalize-insurer-ids.ts",
-    "restore:db": "tsx scripts/restore-and-normalize.ts"
+    "restore:db": "tsx scripts/restore-and-normalize.ts",
+    "deploy": "./scripts/safe-deploy.sh",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "cd functions && npm run build && cd .. && firebase deploy --only functions"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

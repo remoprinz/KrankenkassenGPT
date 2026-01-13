@@ -61,3 +61,8 @@ COMMENT ON TABLE leads IS 'Leads von ChatGPT Krankenkassen-Berater';
 
 
 
+
+
+
+
+

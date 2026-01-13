@@ -1,16 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/servers/main/schemas/mcp.json",
   "mcpServers": {
-    "swisshealth-supabase": {
-      "command": "npx",
+    "swisshealth": {
+      "command": "node",
       "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--supabase-url",
-        "${SUPABASE_URL}",
-        "--supabase-service-role-key",
-        "${SUPABASE_SERVICE_ROLE_KEY}",
-        "--read-only"
+        "/Users/remoprinz/Documents/GPTs/swisshealth-api/src-mcp/build/index.js"
       ],
       "env": {
         "SUPABASE_URL": "${SUPABASE_URL}",
@@ -19,14 +13,3 @@
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-

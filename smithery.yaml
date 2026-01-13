@@ -1,0 +1,16 @@
+mcpServers:
+  swisshealth:
+    url: https://github.com/remoprinz/swisshealth-api
+    path: src-mcp
+    type: node
+    build:
+      - npm install
+      - npm run build
+    command: node
+    args:
+      - build/index.js
+    env:
+      SUPABASE_URL:
+        type: secret
+      SUPABASE_SERVICE_ROLE_KEY:
+        type: secret

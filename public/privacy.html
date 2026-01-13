@@ -3,51 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datenschutzerklärung - SwissHealth API</title>
+    <title>Datenschutzerklärung - SwissHealth API (Demo Showcase)</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
         h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
         h2 { margin-top: 30px; }
+        .warning-box { background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         .footer { margin-top: 50px; font-size: 0.8em; color: #666; border-top: 1px solid #eee; padding-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Datenschutzerklärung</h1>
-    <p>Gültig ab: 1. Januar 2025</p>
+    
+    <div class="warning-box">
+        <strong>⚠️ WICHTIGER HINWEIS: DEMO-SHOWCASE</strong><br>
+        Dieser Dienst ("SwissHealth Agentic Web") ist ein technischer Prototyp zur Demonstration von KI-Agenten. 
+        Er ist <strong>nicht</strong> für den produktiven Abschluss von Versicherungen gedacht. 
+        Alle generierten Offerten sind unverbindliche Muster. Es findet keine Versicherungsvermittlung statt.
+    </div>
+
+    <p>Gültig ab: 1. Januar 2026</p>
 
     <h2>1. Allgemeines</h2>
-    <p>Diese Datenschutzerklärung informiert Nutzer über die Art, den Umfang und den Zweck der Erhebung und Verwendung personenbezogener Daten durch die SwissHealth API ("der Dienst"), die als Backend für ChatGPT Actions dient.</p>
+    <p>Diese Datenschutzerklärung informiert Nutzer über die Art, den Umfang und den Zweck der Erhebung und Verwendung personenbezogener Daten durch die SwissHealth API, die als Backend für KI-Assistenten (z.B. ChatGPT) und MCP-Server dient.</p>
 
     <h2>2. Welche Daten wir verarbeiten</h2>
-    <p>Der Dienst verarbeitet Anfragen, die von ChatGPT (OpenAI) gesendet werden. Diese Anfragen können folgende Parameter enthalten:</p>
+    <p>Wir verarbeiten zwei Kategorien von Daten:</p>
+    
+    <h3>A. Anonyme Abfragedaten (Prämienrechner)</h3>
+    <p>Für die Berechnung von Prämien verarbeiten wir:</p>
     <ul>
-        <li>Kanton und Postleitzahl</li>
+        <li>Wohnort (PLZ/Kanton)</li>
         <li>Altersgruppe (Jahrgang)</li>
         <li>Gewählte Franchise und Versicherungsmodelle</li>
     </ul>
-    <p>Diese Daten sind notwendig, um die korrekten Krankenkassenprämien aus der BAG-Datenbank abzurufen.</p>
-
-    <h2>3. Speicherung und Logs</h2>
-    <p>Der Dienst ist darauf ausgelegt, datensparsam zu arbeiten. Anfrage-Daten werden:</p>
+    
+    <h3>B. Personenbezogene Daten (Nur bei Offerten-Versand)</h3>
+    <p>Wenn Sie explizit den Versand einer Offerte per E-Mail anfordern ("Lead"), verarbeiten wir zusätzlich:</p>
     <ul>
-        <li>Nur flüchtig für die Dauer der Berechnung im Arbeitsspeicher verarbeitet.</li>
-        <li>Nicht permanent in einer Datenbank mit Personenbezug gespeichert.</li>
-        <li>Technische Logs (Server-Logs) werden nach kurzer Zeit automatisch gelöscht und dienen nur der Fehleranalyse.</li>
+        <li><strong>E-Mail-Adresse</strong> (für den Versand)</li>
+        <li><strong>Name</strong> (für die Anrede, falls angegeben)</li>
+        <li>Den Inhalt der generierten Offerte (Gesundheitsdaten-Kontext)</li>
     </ul>
 
-    <h2>4. Chart-Visualisierung</h2>
-    <p>Für die Erstellung von Diagrammen werden anonymisierte Datenparameter (z.B. "Prämienentwicklung CSS Zürich") in einer signierten URL kodiert. Diese URL enthält keine identifizierbaren Nutzerdaten.</p>
+    <h2>3. Datenspeicherung und Dienstleister (Auftragsbearbeiter)</h2>
+    <p>Zur Bereitstellung dieses Demo-Dienstes nutzen wir spezialisierte Dienstleister. Durch die Nutzung willigen Sie in die Übermittlung Ihrer Daten an diese Anbieter ein:</p>
+    
+    <ul>
+        <li><strong>OpenAI (USA):</strong> Wenn Sie den Chatbot nutzen, werden Ihre Eingaben von OpenAI in den USA verarbeitet. Es gelten die Datenschutzbestimmungen von OpenAI.</li>
+        <li><strong>Supabase (Cloud-Datenbank):</strong> Wenn Sie eine Offerte anfordern, wird Ihre Anfrage (E-Mail, Prämiendaten) in unserer Datenbank bei Supabase gespeichert.</li>
+        <li><strong>Resend Inc. (USA):</strong> Für den technischen Versand der E-Mail nutzen wir den Dienst "Resend". Ihre E-Mail-Adresse und der Inhalt der Offerte werden hierfür an Server in den USA übermittelt.</li>
+        <li><strong>Google Cloud Platform (Schweiz/Europa):</strong> Unsere API-Server laufen auf der Google Cloud Infrastruktur.</li>
+    </ul>
 
-    <h2>5. Weitergabe an Dritte</h2>
-    <p>Wir verkaufen keine Daten. Die zugrundeliegenden Prämiendaten stammen vom Bundesamt für Gesundheit (BAG) (Priminfo). Der Dienst fungiert als Schnittstelle zu diesen öffentlichen Daten.</p>
+    <h2>4. Grenzüberschreitende Bekanntgabe (USA)</h2>
+    <p>
+        Wir weisen ausdrücklich darauf hin, dass durch die Nutzung von OpenAI (Chat-Interface) und Resend (E-Mail-Versand) Daten in die USA übermittelt werden. 
+        Die USA gelten datenschutzrechtlich teilweise als Drittstaat ohne angemessenes Datenschutzniveau (Stichwort: US Cloud Act). 
+        Wir beschränken die Datenweitergabe auf das technisch Notwendige zur Vertragserfüllung (Beantwortung Ihrer Anfrage).
+    </p>
 
-    <h2>6. Kontakt</h2>
-    <p>Bei Fragen zum Datenschutz wenden Sie sich bitte an:<br>
-    Remo Prinz<br>
-    E-Mail: <a href="mailto:remo@ragit.io">remo@ragit.io</a></p>
+    <h2>5. Haftungsausschluss</h2>
+    <p>
+        Die bereitgestellten Prämiendaten stammen aus Open-Data-Quellen (BAG). Wir übernehmen keine Gewähr für die Richtigkeit, Vollständigkeit oder Aktualität. 
+        Verbindliche Angebote erhalten Sie ausschliesslich direkt bei den Krankenversicherern.
+    </p>
+
+    <h2>6. Kontakt & Löschung</h2>
+    <p>Sie können jederzeit die Löschung Ihrer gespeicherten Lead-Daten verlangen.</p>
+    <p>
+        Verantwortlich:<br>
+        Remo Prinz<br>
+        E-Mail: <a href="mailto:remo@ragit.io">remo@ragit.io</a>
+    </p>
 
     <div class="footer">
-        <p>SwissHealth API - Powered by Ragit</p>
+        <p>SwissHealth API - Powered by Ragit | Agentic Web Showcase 2026</p>
     </div>
 </body>
 </html>
